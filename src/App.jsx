@@ -16,7 +16,7 @@ export default function App() {
 
   const [busqueda, setBusqueda] = useState("");
 
-  // ================= FETCH (FIX: REFRESH + ORDER) =================
+    // ================= FETCH (FIX: REFRESH + ORDER) =================
   const fetchData = async () => {
     const { data, error } = await supabase
       .from("locales")
@@ -27,17 +27,46 @@ export default function App() {
       return;
     }
 
-    // orden + refresh limpio
     const ordered = (data || []).sort((a, b) =>
-      a.nombre.localeCompare(b.nombre)
+      (a.nombre || "").localeCompare(b.nombre || "")
     );
 
-    setLocales(structuredClone(ordered));
+    setLocales(ordered || []);
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+  fetchData();
+
+  const channel = supabase
+    .channel("realtime-personal")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "personal",
+      },
+      () => {
+        fetchData();
+      }
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "locales",
+      },
+      () => {
+        fetchData();
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, []);
 
   // ================= EMPLEADO SAVE (FIX VALIDATION) =================
   const saveEmpleado = async () => {
@@ -89,14 +118,36 @@ export default function App() {
 
   // ================= DELETE =================
   const deleteEmpleado = async (id) => {
-    await supabase.from("personal").delete().eq("id", id);
-    await fetchData();
-  };
+  if (!window.confirm("¿Eliminar empleado?")) return;
+
+  const { error } = await supabase
+    .from("personal")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  await fetchData();
+};
 
   const deleteLocal = async (id) => {
-    await supabase.from("locales").delete().eq("id", id);
-    await fetchData();
-  };
+  if (!window.confirm("¿Eliminar local?")) return;
+
+  const { error } = await supabase
+    .from("locales")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  await fetchData();
+};
 
   // ================= LOCALES CRUD =================
   const addLocal = async () => {
@@ -117,33 +168,48 @@ export default function App() {
 
   // ================= EXPORT =================
   const exportExcel = () => {
-    const data = [];
+  const data = [];
 
-    locales.forEach((l) => {
-      l.personal?.forEach((p) => {
-        data.push({
-          Local: l.nombre,
-          Nombre: p.nombre,
-          Puesto: p.puesto,
-        });
+  locales.forEach((l) => {
+    l.personal?.forEach((p) => {
+      data.push({
+        Local: l.nombre,
+        Nombre: p.nombre,
+        Puesto: p.puesto,
       });
     });
+  });
 
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Personal");
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
 
-    const buffer = XLSX.write(wb, {
-      bookType: "xlsx",
-      type: "array",
-    });
+  XLSX.utils.book_append_sheet(wb, ws, "Personal");
 
-    const file = new Blob([buffer], {
-      type: "application/octet-stream",
-    });
+  const buffer = XLSX.write(wb, {
+    bookType: "xlsx",
+    type: "array",
+  });
 
-    saveAs(file, "personal.xlsx");
-  };
+  const file = new Blob([buffer], {
+    type: "application/octet-stream",
+  });
+
+  const now = new Date();
+
+  const fecha =
+    now.getFullYear() +
+    "-" +
+    String(now.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(now.getDate()).padStart(2, "0");
+
+  const hora =
+    String(now.getHours()).padStart(2, "0") +
+    "-" +
+    String(now.getMinutes()).padStart(2, "0");
+
+  saveAs(file, `personal_${fecha}_${hora}.xlsx`);
+};
 
   // ================= FILTER =================
   const filtered = [...locales].map((l) => ({
@@ -152,18 +218,82 @@ export default function App() {
       p.nombre.toLowerCase().includes(busqueda.toLowerCase())
     ),
   }));
+const totalLocales = locales.length;
 
+const totalEmpleados = locales.reduce(
+  (acc, local) => acc + (local.personal?.length || 0),
+  0
+);
+
+const puestosUnicos = new Set(
+  locales.flatMap((l) =>
+    (l.personal || []).map((p) => p.puesto)
+  )
+).size;
+
+const localMasGrande =
+  locales.length > 0
+    ? locales.reduce((max, actual) =>
+        (actual.personal?.length || 0) >
+        (max.personal?.length || 0)
+          ? actual
+          : max
+      )
+    : null;
   // ================= UI =================
   return (
-    <div style={styles.app}>
-      <div style={styles.container}>
+  <div style={styles.app}>
+    <div style={styles.container}>
 
-        <div style={styles.header}>
-          <h2>📊 EQUIPO</h2>
-          <p>Sistema de personal</p>
+      <div style={styles.header}>
+        <h1
+          style={{
+            fontSize: 42,
+            fontWeight: "800",
+            margin: 0,
+            letterSpacing: "1px",
+          }}
+        >
+          <span style={{ color: "#1565c0" }}>RES</span>
+          <span style={{ color: "#000" }}> en </span>
+          <span style={{ color: "#d32f2f" }}>DÍA</span>
+        </h1>
+
+        <p
+          style={{
+            marginTop: 6,
+            color: "#666",
+            fontSize: 14,
+            fontWeight: "500",
+          }}
+        >
+          Sistema de dotación personal
+        </p>
+      </div>
+
+      <div style={styles.dashboard}>
+        <div style={styles.kpi}>
+          <div style={styles.kpiNumber}>{totalLocales}</div>
+          <div>Tiendas</div>
         </div>
 
-        {/* SEARCH + EXPORT */}
+        <div style={styles.kpi}>
+          <div style={styles.kpiNumber}>{totalEmpleados}</div>
+          <div>Colaboradores</div>
+        </div>
+
+        <div style={styles.kpi}>
+          <div style={styles.kpiNumber}>{puestosUnicos}</div>
+          <div>Puestos</div>
+        </div>
+
+        <div style={styles.kpi}>
+          <div style={styles.kpiNumber}>{locales.length}</div>
+          <div>Activos</div>
+        </div>
+      </div>
+
+{/* SEARCH + EXPORT */}
         <div style={styles.card}>
           <input
             style={styles.input}
@@ -195,7 +325,7 @@ export default function App() {
 
         {/* EMPLEADO */}
         <div style={styles.card}>
-          <h3>👤 Empleado</h3>
+          <h3>👤 Colaborador</h3>
 
           <input
             style={styles.input}
@@ -283,7 +413,7 @@ export default function App() {
 // ================= STYLES (NO TOCAR) =================
 const styles = {
   app: {
-    fontFamily: "Arial",
+    fontFamily: "Arial, sans-serif",
     background: "#f4f6f8",
     minHeight: "100vh",
     display: "flex",
@@ -298,11 +428,25 @@ const styles = {
 
   header: {
     textAlign: "center",
-    marginBottom: 15,
+    marginBottom: 20,
+  },
+
+  logo: {
+    width: 220,
+    maxWidth: "100%",
+    display: "block",
+    margin: "0 auto",
+  },
+
+  subtitle: {
+    marginTop: 10,
+    color: "#666",
+    fontSize: 14,
+    textAlign: "center",
   },
 
   card: {
-    background: "white",
+    background: "#fff",
     borderRadius: 12,
     padding: 15,
     marginBottom: 15,
@@ -315,34 +459,38 @@ const styles = {
     marginBottom: 10,
     borderRadius: 8,
     border: "1px solid #ddd",
+    boxSizing: "border-box",
   },
 
   btnGreen: {
     width: "100%",
     padding: 10,
     background: "#2ecc71",
-    color: "white",
+    color: "#fff",
     border: "none",
     borderRadius: 8,
     fontWeight: "bold",
+    cursor: "pointer",
   },
 
   btnBlue: {
     width: "100%",
     padding: 10,
     background: "#3498db",
-    color: "white",
+    color: "#fff",
     border: "none",
     borderRadius: 8,
     fontWeight: "bold",
+    cursor: "pointer",
   },
 
   btnRed: {
     padding: "6px 10px",
     background: "#e74c3c",
-    color: "white",
+    color: "#fff",
     border: "none",
     borderRadius: 6,
+    cursor: "pointer",
   },
 
   localHeader: {
@@ -357,5 +505,26 @@ const styles = {
     alignItems: "center",
     padding: "8px 0",
     borderBottom: "1px solid #eee",
+  },
+
+  dashboard: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: 10,
+    marginBottom: 15,
+  },
+
+  kpi: {
+    background: "#fff",
+    borderRadius: 12,
+    padding: 12,
+    textAlign: "center",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+  },
+
+  kpiNumber: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#3498db",
   },
 };
