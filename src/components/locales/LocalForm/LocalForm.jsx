@@ -9,6 +9,7 @@ const initialState = {
   telefono: "",
   whatsapp: "",
   encargado: "",
+  dotacion_teorica: 4,
 };
 
 export default function LocalForm({
@@ -32,6 +33,8 @@ export default function LocalForm({
         telefono: local.telefono || "",
         whatsapp: local.whatsapp || "",
         encargado: local.encargado || "",
+        dotacion_teorica:
+          local.dotacion_teorica ?? 4,
       });
 
     } else {
@@ -42,38 +45,75 @@ export default function LocalForm({
 
   }, [local]);
 
+
   function handleChange(e) {
 
     const { name, value } = e.target;
 
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
       [name]: value,
     }));
 
   }
 
+
   function handleSubmit(e) {
 
     e.preventDefault();
 
+
     if (!form.numero.trim()) {
-      alert("Debe ingresar el número del local.");
+
+      alert(
+        "Debe ingresar el número del local."
+      );
+
       return;
     }
+
 
     if (!form.nombre.trim()) {
-      alert("Debe ingresar el nombre del local.");
+
+      alert(
+        "Debe ingresar el nombre del local."
+      );
+
       return;
     }
 
-    onSave(form);
+
+    const dotacion =
+      Number(form.dotacion_teorica);
+
+
+    if (
+      !Number.isInteger(dotacion) ||
+      dotacion < 1
+    ) {
+
+      alert(
+        "La dotación teórica debe ser un número entero mayor a 0."
+      );
+
+      return;
+    }
+
+
+    onSave({
+      ...form,
+      dotacion_teorica: dotacion,
+    });
+
 
     if (!local) {
+
       setForm(initialState);
+
     }
 
   }
+
 
   return (
 
@@ -83,26 +123,34 @@ export default function LocalForm({
     >
 
       <h2 style={styles.title}>
-        {local ? "Editar Local" : "Nuevo Local"}
+
+        {local
+          ? "Editar Local"
+          : "Nuevo Local"}
+
       </h2>
 
+
       <div style={styles.grid}>
+
 
         <input
           style={styles.input}
           name="numero"
-          placeholder="Número"
+          placeholder="Número del local"
           value={form.numero}
           onChange={handleChange}
         />
 
+
         <input
           style={styles.input}
           name="nombre"
-          placeholder="Nombre"
+          placeholder="Nombre del local"
           value={form.nombre}
           onChange={handleChange}
         />
+
 
         <select
           style={styles.select}
@@ -128,6 +176,7 @@ export default function LocalForm({
 
         </select>
 
+
         <input
           style={styles.input}
           name="direccion"
@@ -135,6 +184,7 @@ export default function LocalForm({
           value={form.direccion}
           onChange={handleChange}
         />
+
 
         <input
           style={styles.input}
@@ -144,6 +194,7 @@ export default function LocalForm({
           onChange={handleChange}
         />
 
+
         <input
           style={styles.input}
           name="whatsapp"
@@ -151,6 +202,7 @@ export default function LocalForm({
           value={form.whatsapp}
           onChange={handleChange}
         />
+
 
         <input
           style={styles.input}
@@ -160,16 +212,37 @@ export default function LocalForm({
           onChange={handleChange}
         />
 
+
+        {/* DOTACIÓN TEÓRICA */}
+
+        <input
+          style={styles.input}
+          type="number"
+          name="dotacion_teorica"
+          min="1"
+          step="1"
+          placeholder="Dotación teórica"
+          value={form.dotacion_teorica}
+          onChange={handleChange}
+        />
+
       </div>
 
+
       <div style={styles.actions}>
+
 
         <button
           type="submit"
           style={styles.saveButton}
         >
-          {local ? "Actualizar" : "Guardar"}
+
+          {local
+            ? "Actualizar"
+            : "Guardar"}
+
         </button>
+
 
         {local && (
 
@@ -178,7 +251,9 @@ export default function LocalForm({
             style={styles.cancelButton}
             onClick={onCancel}
           >
+
             Cancelar
+
           </button>
 
         )}

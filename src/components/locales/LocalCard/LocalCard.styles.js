@@ -1,126 +1,264 @@
 const styles = {
 
+  card: {
 
-card:{
+    background: "#ffffff",
 
-background:"#ffffff",
+    borderRadius: "16px",
 
-borderRadius:"16px",
+    padding: "22px",
 
-padding:"20px",
+    boxShadow:
+      "0 8px 25px rgba(0,0,0,0.08)",
 
-boxShadow:
-"0 8px 25px rgba(0,0,0,0.08)",
+    border:
+      "1px solid #e5e7eb",
 
-border:
-"1px solid #e5e7eb",
+    display: "flex",
 
-display:"flex",
+    flexDirection: "column",
 
-flexDirection:"column",
+    gap: "18px",
 
-gap:"15px"
+  },
 
-},
 
+  header: {
 
+    display: "flex",
 
-header:{
+    justifyContent: "space-between",
 
-display:"flex",
+    alignItems: "flex-start",
 
-justifyContent:"space-between",
+  },
 
-alignItems:"center"
 
-},
+  title: {
 
+    margin: 0,
 
+    fontSize: "20px",
 
-title:{
+    fontWeight: "700",
 
-margin:0,
+    color: "#111827",
 
-fontSize:"20px",
+  },
 
-color:"#0f172a"
 
-},
+  nombre: {
 
+    margin:
+      "6px 0 0 0",
 
+    fontSize: "18px",
 
-nombre:{
+    fontWeight: "600",
 
-marginTop:"5px",
+    color: "#374151",
 
-fontSize:"16px",
+  },
 
-fontWeight:"600",
 
-color:"#2563eb"
+  info: {
 
-},
+    display: "flex",
 
+    flexDirection: "column",
 
+    gap: "8px",
 
-info:{
+    color: "#4b5563",
 
-fontSize:"14px",
+    fontSize: "14px",
 
-color:"#475569",
+  },
 
-lineHeight:"1.6"
 
-},
+  infoItem: {
 
+    margin: 0,
 
+  },
 
-actions:{
 
-display:"flex",
+  dotacion: {
 
-gap:"10px",
+    background: "#f8fafc",
 
-marginTop:"10px"
+    border:
+      "1px solid #e2e8f0",
 
-},
+    borderRadius: "12px",
 
+    padding: "15px",
 
+  },
 
-edit:{
 
-border:"none",
+  dotacionTitulo: {
 
-padding:"8px 14px",
+    fontSize: "15px",
 
-borderRadius:"8px",
+    fontWeight: "700",
 
-background:"#2563eb",
+    color: "#1f2937",
 
-color:"#fff",
+    marginBottom: "12px",
 
-cursor:"pointer"
+  },
 
-},
 
+  dotacionGrid: {
 
+    display: "grid",
 
-delete:{
+    gridTemplateColumns:
+      "1fr 1fr",
 
-border:"none",
+    gap: "12px",
 
-padding:"8px 14px",
+  },
 
-borderRadius:"8px",
 
-background:"#dc2626",
+  dotacionItem: {
 
-color:"#fff",
+    background: "#ffffff",
 
-cursor:"pointer"
+    borderRadius: "10px",
 
-}
+    padding: "12px",
 
+    textAlign: "center",
+
+    border:
+      "1px solid #e5e7eb",
+
+  },
+
+
+  dotacionLabel: {
+
+    display: "block",
+
+    fontSize: "12px",
+
+    color: "#6b7280",
+
+    marginBottom: "5px",
+
+  },
+
+
+  dotacionNumero: {
+
+    display: "block",
+
+    fontSize: "24px",
+
+    fontWeight: "800",
+
+    color: "#111827",
+
+  },
+
+
+  estado: {
+
+    marginTop: "12px",
+
+    padding: "10px",
+
+    borderRadius: "8px",
+
+    textAlign: "center",
+
+    fontWeight: "700",
+
+    fontSize: "14px",
+
+  },
+
+
+  estadoFaltante: {
+
+    background: "#fef3c7",
+
+    color: "#92400e",
+
+  },
+
+
+  estadoCompleto: {
+
+    background: "#dcfce7",
+
+    color: "#166534",
+
+  },
+
+
+  estadoExcedente: {
+
+    background: "#fee2e2",
+
+    color: "#991b1b",
+
+  },
+
+
+  actions: {
+
+    display: "flex",
+
+    gap: "10px",
+
+    marginTop: "4px",
+
+  },
+
+
+  edit: {
+
+    flex: 1,
+
+    border: "none",
+
+    borderRadius: "8px",
+
+    padding: "10px",
+
+    cursor: "pointer",
+
+    background: "#2563eb",
+
+    color: "#ffffff",
+
+    fontWeight: "600",
+
+  },
+
+
+  delete: {
+
+    flex: 1,
+
+    border: "none",
+
+    borderRadius: "8px",
+
+    padding: "10px",
+
+    cursor: "pointer",
+
+    background: "#dc2626",
+
+    color: "#ffffff",
+
+    fontWeight: "600",
+
+  },
 
 };
 

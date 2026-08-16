@@ -6,103 +6,102 @@ import styles from "./LocalList.styles";
 
 
 export default function LocalList({
-
   locales,
-
   onEdit,
-
-  onDelete
-
+  onDelete,
 }) {
 
-
-const [busqueda,setBusqueda] = useState("");
-
-
-
-const filtrados = locales.filter(local=>{
+  const [busqueda, setBusqueda] =
+    useState("");
 
 
-const texto = busqueda.toLowerCase();
+  const localesFiltrados =
+    locales.filter((local) => {
+
+      const texto =
+        busqueda
+          .toLowerCase()
+          .trim();
+
+      if (!texto) {
+        return true;
+      }
 
 
-return (
+      return (
 
-String(local.numero)
-.includes(texto)
+        String(local.numero || "")
+          .toLowerCase()
+          .includes(texto)
 
-||
+        ||
 
-local.nombre
-?.toLowerCase()
-.includes(texto)
+        String(local.nombre || "")
+          .toLowerCase()
+          .includes(texto)
 
+        ||
 
-||
+        String(local.zonas?.nombre || "")
+          .toLowerCase()
+          .includes(texto)
 
-local.zonas?.nombre
-?.toLowerCase()
-.includes(texto)
+      );
 
-);
-
-
-});
-
+    });
 
 
-return (
+  return (
 
-<div>
+    <div>
 
-
-<input
-
-style={styles.search}
-
-placeholder="Buscar local..."
-
-value={busqueda}
-
-onChange={
-e=>setBusqueda(e.target.value)
-}
-
-/>
+      <input
+        style={styles.search}
+        type="text"
+        placeholder="Buscar por número, nombre o zona..."
+        value={busqueda}
+        onChange={(e) =>
+          setBusqueda(e.target.value)
+        }
+      />
 
 
+      <div style={styles.grid}>
 
-<div style={styles.grid}>
+        {localesFiltrados.length === 0 ? (
 
+          <div
+            style={{
+              gridColumn: "1 / -1",
+              textAlign: "center",
+              padding: "40px",
+              color: "#6b7280",
+            }}
+          >
 
-{
+            No se encontraron locales.
 
-filtrados.map(local=>(
+          </div>
 
-<LocalCard
+        ) : (
 
-key={local.id}
+          localesFiltrados.map((local) => (
 
-local={local}
+            <LocalCard
+              key={local.id}
+              local={local}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
 
-onEdit={onEdit}
+          ))
 
-onDelete={onDelete}
+        )}
 
-/>
+      </div>
 
-))
+    </div>
 
-
-}
-
-
-</div>
-
-
-</div>
-
-);
-
+  );
 
 }

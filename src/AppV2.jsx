@@ -1,64 +1,54 @@
-/*
-==========================================
-SC Gestión Comercial V2
-
-AppV2.jsx
-
-Responsabilidad:
-- Componente principal
-- Control de navegación
-- Layout general
-
-No contiene lógica de negocio.
-==========================================
-*/
-
 import { useState } from "react";
-import Zonas from "./pages/Zonas";
+
 import Sidebar from "./components/layout/Sidebar";
+
 import Dashboard from "./pages/Dashboard";
-import Colaboradores from "./pages/Colaboradores";
+import Zonas from "./pages/Zonas";
 import Locales from "./pages/Locales";
+import Colaboradores from "./pages/Colaboradores";
+import Dotacion from "./pages/Dotacion";
+import Movimientos from "./pages/Movimientos";
+import Reportes from "./pages/Reportes";
+import Configuracion from "./pages/Configuracion";
 
 export default function AppV2() {
   const [modulo, setModulo] = useState("dashboard");
 
-  // Más adelante vendrá desde Supabase
   const usuario = {
     nombre: "Administrador",
     email: "admin@scgestion.com",
   };
 
-  const renderPagina = () => {
+  function renderPagina() {
     switch (modulo) {
       case "dashboard":
         return <Dashboard />;
 
       case "zonas":
-        return <Zonas />;;
+        return <Zonas />;
 
       case "locales":
-       return <Locales />;
+        return <Locales />;
 
       case "colaboradores":
         return <Colaboradores />;
 
       case "dotacion":
-        return <h1>Dotación</h1>;
+        return <Dotacion />;
 
       case "movimientos":
-        return <h1>Movimientos</h1>;
+        return <Movimientos />;
 
       case "reportes":
-        return <h1>Reportes</h1>;
+        return <Reportes />;
 
       case "configuracion":
-        return <h1>Configuración</h1>;
+        return <Configuracion />;
 
       default:
         return <Dashboard />;
     }
-  };
+  }
 
   return (
     <div
@@ -66,6 +56,7 @@ export default function AppV2() {
         display: "flex",
         height: "100vh",
         background: "#F4F7FB",
+        overflow: "hidden",
       }}
     >
       <Sidebar
@@ -77,8 +68,9 @@ export default function AppV2() {
       <main
         style={{
           flex: 1,
-          padding: 30,
+          padding: "30px",
           overflowY: "auto",
+          minWidth: 0,
         }}
       >
         {renderPagina()}

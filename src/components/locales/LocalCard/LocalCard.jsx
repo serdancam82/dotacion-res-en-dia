@@ -4,23 +4,77 @@ import styles from "./LocalCard.styles";
 export default function LocalCard({
   local,
   onEdit,
-  onDelete
+  onDelete,
 }) {
 
+  // =====================================================
+  // DOTACIÓN
+  // =====================================================
+
+  const dotacionTeorica =
+    Number(local.dotacion_teorica ?? 4);
+
+  const dotacionReal =
+    Number(local.dotacion_real ?? 0);
+
+
+  const diferencia =
+    dotacionReal - dotacionTeorica;
+
+
+  let estado = "";
+  let estadoStyle = {};
+
+
+  if (diferencia < 0) {
+
+    estado =
+      `⚠️ Faltan ${Math.abs(diferencia)}`;
+
+    estadoStyle =
+      styles.estadoFaltante;
+
+  } else if (diferencia === 0) {
+
+    estado =
+      "🟢 Dotación completa";
+
+    estadoStyle =
+      styles.estadoCompleto;
+
+  } else {
+
+    estado =
+      `🔴 Excedente ${diferencia}`;
+
+    estadoStyle =
+      styles.estadoExcedente;
+
+  }
+
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
 
     <div style={styles.card}>
 
 
-      <div style={styles.header}>
+      {/* =================================================
+          CABECERA
+      ================================================= */}
 
+      <div style={styles.header}>
 
         <div>
 
           <h3 style={styles.title}>
 
-            Local Nº {local.numero}
+            Local Nº{" "}
+
+            {local.numero || "SIN NÚMERO"}
 
           </h3>
 
@@ -33,79 +87,168 @@ export default function LocalCard({
 
         </div>
 
-
       </div>
 
 
+
+      {/* =================================================
+          INFORMACIÓN
+      ================================================= */}
 
       <div style={styles.info}>
 
 
         <p>
-          📍 Zona:
-          {" "}
+
+          📍 <strong>Zona:</strong>{" "}
+
           {local.zonas?.nombre || "-"}
+
         </p>
 
 
-
         <p>
-          ☎️ Teléfono:
-          {" "}
+
+          ☎️ <strong>Teléfono:</strong>{" "}
+
           {local.telefono || "-"}
+
         </p>
 
 
-
         <p>
-          📱 WhatsApp:
-          {" "}
+
+          📱 <strong>WhatsApp:</strong>{" "}
+
           {local.whatsapp || "-"}
-        </p>
 
+        </p>
 
 
         <p>
-          🏠 Dirección:
-          {" "}
+
+          🏠 <strong>Dirección:</strong>{" "}
+
           {local.direccion || "-"}
+
         </p>
 
+
+        <p>
+
+          👤 <strong>Encargado:</strong>{" "}
+
+          {local.encargado || "-"}
+
+        </p>
 
 
       </div>
 
 
 
+      {/* =================================================
+          DOTACIÓN
+      ================================================= */}
+
+      <div style={styles.dotacion}>
+
+
+        <div style={styles.dotacionTitulo}>
+
+          📊 Dotación
+
+        </div>
+
+
+        <div style={styles.dotacionGrid}>
+
+
+          <div style={styles.dotacionItem}>
+
+            <span style={styles.dotacionLabel}>
+
+              Teórica
+
+            </span>
+
+            <strong style={styles.dotacionNumero}>
+
+              {dotacionTeorica}
+
+            </strong>
+
+          </div>
+
+
+          <div style={styles.dotacionItem}>
+
+            <span style={styles.dotacionLabel}>
+
+              Real
+
+            </span>
+
+            <strong style={styles.dotacionNumero}>
+
+              {dotacionReal}
+
+            </strong>
+
+          </div>
+
+
+        </div>
+
+
+        <div
+          style={{
+            ...styles.estado,
+            ...estadoStyle,
+          }}
+        >
+
+          {estado}
+
+        </div>
+
+
+      </div>
+
+
+
+      {/* =================================================
+          ACCIONES
+      ================================================= */}
 
       <div style={styles.actions}>
 
 
         <button
-
           style={styles.edit}
-
-          onClick={()=>onEdit(local)}
-
+          onClick={() =>
+            onEdit(local)
+          }
         >
+
           ✏️ Editar
+
         </button>
 
 
-
         <button
-
           style={styles.delete}
-
-          onClick={()=>onDelete(local.id)}
-
+          onClick={() =>
+            onDelete(local.id)
+          }
         >
+
           🗑️ Eliminar
+
         </button>
 
 
       </div>
-
 
 
     </div>
