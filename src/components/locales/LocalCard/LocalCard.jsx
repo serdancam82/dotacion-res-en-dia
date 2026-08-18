@@ -1,11 +1,15 @@
-import styles from "./LocalCard.styles";
+import { useState } from "react";
 
+import styles from "./LocalCard.styles";
 
 export default function LocalCard({
   local,
+  colaboradores = [],
   onEdit,
   onDelete,
 }) {
+  const [mostrarColaboradores, setMostrarColaboradores] =
+    useState(false);
 
   // =====================================================
   // DOTACIÓN
@@ -17,204 +21,241 @@ export default function LocalCard({
   const dotacionReal =
     Number(local.dotacion_real ?? 0);
 
-
   const diferencia =
     dotacionReal - dotacionTeorica;
 
+  // =====================================================
+  // ESTADO
+  // =====================================================
 
   let estado = "";
   let estadoStyle = {};
 
-
   if (diferencia < 0) {
-
-    estado =
-      `⚠️ Faltan ${Math.abs(diferencia)}`;
-
-    estadoStyle =
-      styles.estadoFaltante;
-
+    estado = `⚠️ Faltan ${Math.abs(diferencia)}`;
+    estadoStyle = styles.estadoFaltante;
   } else if (diferencia === 0) {
-
-    estado =
-      "🟢 Dotación completa";
-
-    estadoStyle =
-      styles.estadoCompleto;
-
+    estado = "🟢 Dotación completa";
+    estadoStyle = styles.estadoCompleto;
   } else {
-
-    estado =
-      `🔴 Excedente ${diferencia}`;
-
-    estadoStyle =
-      styles.estadoExcedente;
-
+    estado = `🔴 Excedente ${diferencia}`;
+    estadoStyle = styles.estadoExcedente;
   }
-
 
   // =====================================================
   // RENDER
   // =====================================================
 
   return (
-
     <div style={styles.card}>
 
-
       {/* =================================================
-          CABECERA
+          CABECERA + DOTACIÓN
       ================================================= */}
 
-      <div style={styles.header}>
+      <div style={styles.topContent}>
+
+        {/* ===============================================
+            INFORMACIÓN DEL LOCAL
+        =============================================== */}
 
         <div>
 
-          <h3 style={styles.title}>
+          <div style={styles.header}>
 
-            Local Nº{" "}
+            <div>
 
-            {local.numero || "SIN NÚMERO"}
+              <h3 style={styles.title}>
+                Local Nº{" "}
+                {local.numero || "SIN NÚMERO"}
+              </h3>
 
-          </h3>
+              <p style={styles.nombre}>
+                {local.nombre || "-"}
+              </p>
+
+            </div>
+
+          </div>
 
 
-          <p style={styles.nombre}>
+          <div style={styles.info}>
 
-            {local.nombre}
+            <p style={styles.infoItem}>
+              📍 <strong>Zona:</strong>{" "}
+              {local.zonas?.nombre || "-"}
+            </p>
 
-          </p>
+            <p style={styles.infoItem}>
+              ☎️ <strong>Teléfono:</strong>{" "}
+              {local.telefono || "-"}
+            </p>
+
+            <p style={styles.infoItem}>
+              📱 <strong>WhatsApp:</strong>{" "}
+              {local.whatsapp || "-"}
+            </p>
+
+            <p style={styles.infoItem}>
+              🏠 <strong>Dirección:</strong>{" "}
+              {local.direccion || "-"}
+            </p>
+
+            <p style={styles.infoItem}>
+              👤 <strong>Encargado:</strong>{" "}
+              {local.encargado || "-"}
+            </p>
+
+          </div>
+
+        </div>
+
+
+        {/* ===============================================
+            DOTACIÓN
+        =============================================== */}
+
+        <div style={styles.dotacion}>
+
+          <div style={styles.dotacionTitulo}>
+            📊 Dotación
+          </div>
+
+          <div style={styles.dotacionVertical}>
+
+            <div style={styles.dotacionItem}>
+
+              <span style={styles.dotacionLabel}>
+                Teórica
+              </span>
+
+              <strong style={styles.dotacionNumero}>
+                {dotacionTeorica}
+              </strong>
+
+            </div>
+
+
+            <div style={styles.dotacionItem}>
+
+              <span style={styles.dotacionLabel}>
+                Real
+              </span>
+
+              <strong style={styles.dotacionNumero}>
+                {dotacionReal}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div
+            style={{
+              ...styles.estado,
+              ...estadoStyle,
+            }}
+          >
+            {estado}
+          </div>
 
         </div>
 
       </div>
 
 
-
       {/* =================================================
-          INFORMACIÓN
+          COLABORADORES
       ================================================= */}
 
-      <div style={styles.info}>
+      <div style={styles.colaboradoresSection}>
 
-
-        <p>
-
-          📍 <strong>Zona:</strong>{" "}
-
-          {local.zonas?.nombre || "-"}
-
-        </p>
-
-
-        <p>
-
-          ☎️ <strong>Teléfono:</strong>{" "}
-
-          {local.telefono || "-"}
-
-        </p>
-
-
-        <p>
-
-          📱 <strong>WhatsApp:</strong>{" "}
-
-          {local.whatsapp || "-"}
-
-        </p>
-
-
-        <p>
-
-          🏠 <strong>Dirección:</strong>{" "}
-
-          {local.direccion || "-"}
-
-        </p>
-
-
-        <p>
-
-          👤 <strong>Encargado:</strong>{" "}
-
-          {local.encargado || "-"}
-
-        </p>
-
-
-      </div>
-
-
-
-      {/* =================================================
-          DOTACIÓN
-      ================================================= */}
-
-      <div style={styles.dotacion}>
-
-
-        <div style={styles.dotacionTitulo}>
-
-          📊 Dotación
-
-        </div>
-
-
-        <div style={styles.dotacionGrid}>
-
-
-          <div style={styles.dotacionItem}>
-
-            <span style={styles.dotacionLabel}>
-
-              Teórica
-
-            </span>
-
-            <strong style={styles.dotacionNumero}>
-
-              {dotacionTeorica}
-
-            </strong>
-
-          </div>
-
-
-          <div style={styles.dotacionItem}>
-
-            <span style={styles.dotacionLabel}>
-
-              Real
-
-            </span>
-
-            <strong style={styles.dotacionNumero}>
-
-              {dotacionReal}
-
-            </strong>
-
-          </div>
-
-
-        </div>
-
-
-        <div
-          style={{
-            ...styles.estado,
-            ...estadoStyle,
-          }}
+        <button
+          type="button"
+          onClick={() =>
+            setMostrarColaboradores(
+              !mostrarColaboradores
+            )
+          }
+          style={styles.colaboradoresHeader}
         >
 
-          {estado}
+          <span>
+            👥 Colaboradores ({colaboradores.length})
+          </span>
 
-        </div>
+          <span>
+            {mostrarColaboradores ? "▲" : "▼"}
+          </span>
 
+        </button>
+
+
+        {mostrarColaboradores && (
+
+          <div style={styles.colaboradoresLista}>
+
+            {colaboradores.length === 0 ? (
+
+              <div style={styles.sinColaboradores}>
+                No hay colaboradores asignados a este local.
+              </div>
+
+            ) : (
+
+              colaboradores.map((colaborador) => (
+
+                <div
+                  key={colaborador.id}
+                  style={styles.colaboradorItem}
+                >
+
+                  <div>
+
+                    <div
+                      style={{
+                        fontWeight: "700",
+                        color: "#111827",
+                      }}
+                    >
+                      {colaborador.nombre || ""}
+                      {" "}
+                      {colaborador.apellido || ""}
+                    </div>
+
+                    <div style={styles.colaboradorDetalle}>
+
+                      {colaborador.puesto || "Sin puesto"}
+
+                      {" · "}
+
+                      Legajo:{" "}
+                      {colaborador.legajo || "-"}
+
+                    </div>
+
+                    {colaborador.rol && (
+
+                      <div style={styles.colaboradorDetalle}>
+                        Rol: {colaborador.rol}
+                      </div>
+
+                    )}
+
+                  </div>
+
+                </div>
+
+              ))
+
+            )}
+
+          </div>
+
+        )}
 
       </div>
-
 
 
       {/* =================================================
@@ -223,36 +264,30 @@ export default function LocalCard({
 
       <div style={styles.actions}>
 
-
         <button
+          type="button"
           style={styles.edit}
           onClick={() =>
             onEdit(local)
           }
         >
-
           ✏️ Editar
-
         </button>
 
 
         <button
+          type="button"
           style={styles.delete}
           onClick={() =>
             onDelete(local.id)
           }
         >
-
           🗑️ Eliminar
-
         </button>
-
 
       </div>
 
-
     </div>
-
   );
-
 }
+

@@ -7,6 +7,7 @@ import styles from "./LocalList.styles";
 
 export default function LocalList({
   locales,
+  colaboradores,
   onEdit,
   onDelete,
 }) {
@@ -15,6 +16,10 @@ export default function LocalList({
     useState("");
 
 
+  // =====================================================
+  // FILTRAR LOCALES
+  // =====================================================
+
   const localesFiltrados =
     locales.filter((local) => {
 
@@ -22,6 +27,7 @@ export default function LocalList({
         busqueda
           .toLowerCase()
           .trim();
+
 
       if (!texto) {
         return true;
@@ -51,20 +57,38 @@ export default function LocalList({
     });
 
 
+  // =====================================================
+  // RENDER
+  // =====================================================
+
   return (
 
     <div>
 
+      {/* =================================================
+          BUSCADOR
+      ================================================= */}
+
       <input
+
         style={styles.search}
+
         type="text"
+
         placeholder="Buscar por número, nombre o zona..."
+
         value={busqueda}
+
         onChange={(e) =>
           setBusqueda(e.target.value)
         }
+
       />
 
+
+      {/* =================================================
+          LISTADO
+      ================================================= */}
 
       <div style={styles.grid}>
 
@@ -88,10 +112,25 @@ export default function LocalList({
           localesFiltrados.map((local) => (
 
             <LocalCard
+
               key={local.id}
+
               local={local}
+
+              colaboradores={
+                (colaboradores || []).filter(
+                  (colaborador) =>
+                    String(
+                      colaborador.local_id
+                    ) ===
+                    String(local.id)
+                )
+              }
+
               onEdit={onEdit}
+
               onDelete={onDelete}
+
             />
 
           ))

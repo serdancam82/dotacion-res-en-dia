@@ -1,11 +1,10 @@
 import { supabase } from "../supabaseClient";
 
-
-// ===============================
+// =====================================================
 // OBTENER COLABORADORES
-// ===============================
-export async function getColaboradores() {
+// =====================================================
 
+export async function getColaboradores() {
   const { data, error } = await supabase
     .from("personal")
     .select(`
@@ -17,15 +16,8 @@ export async function getColaboradores() {
       )
     `)
     .order("apellido", {
-      ascending: true
+      ascending: true,
     });
-
-
-  console.log(
-    "DATOS DESDE SUPABASE:",
-    data
-  );
-
 
   if (error) {
     console.error(
@@ -36,56 +28,108 @@ export async function getColaboradores() {
     throw error;
   }
 
+  console.log(
+    "COLABORADORES DESDE SUPABASE:",
+    data
+  );
 
   return data || [];
-
 }
 
 
-
-// ===============================
+// =====================================================
 // CREAR COLABORADOR
-// ===============================
-export async function createColaborador(colaborador) {
+// =====================================================
+
+export async function createColaborador(
+  colaborador
+) {
+  const payload = {
+    legajo:
+      colaborador.legajo || null,
+
+    nombre:
+      colaborador.nombre || null,
+
+    apellido:
+      colaborador.apellido || null,
+
+    telefono:
+      colaborador.telefono || null,
+
+    puesto:
+      colaborador.puesto || null,
+
+    rol:
+      colaborador.rol || "colaborador",
+
+    local_id:
+      colaborador.local_id || null,
+  };
+
+  console.log(
+    "CREANDO COLABORADOR:",
+    payload
+  );
 
   const { data, error } = await supabase
     .from("personal")
-    .insert([colaborador])
-    .select();
-
+    .insert([payload])
+    .select("*");
 
   if (error) {
+    console.error(
+      "ERROR CREATE COLABORADOR:",
+      error
+    );
+
     throw error;
   }
 
-
   return data?.[0] || null;
-
 }
 
 
-
-// ===============================
+// =====================================================
 // ACTUALIZAR COLABORADOR
-// ===============================
-export async function updateColaborador(id, colaborador) {
+// =====================================================
 
-  console.log("UPDATE ID:", id);
-  console.log("DATOS RECIBIDOS:", colaborador);
-
+export async function updateColaborador(
+  id,
+  colaborador
+) {
   const payload = {
-    legajo: colaborador.legajo || null,
-    nombre: colaborador.nombre,
-    apellido: colaborador.apellido,
-    telefono: colaborador.telefono || null,
-    puesto: colaborador.puesto,
-    rol: colaborador.rol,
-    local_id: colaborador.local_id || null,
+    legajo:
+      colaborador.legajo || null,
+
+    nombre:
+      colaborador.nombre || null,
+
+    apellido:
+      colaborador.apellido || null,
+
+    telefono:
+      colaborador.telefono || null,
+
+    puesto:
+      colaborador.puesto || null,
+
+    rol:
+      colaborador.rol || "colaborador",
+
+    local_id:
+      colaborador.local_id || null,
   };
 
+  console.log(
+    "ACTUALIZANDO COLABORADOR:",
+    id
+  );
 
-  console.log("PAYLOAD A SUPABASE:", payload);
-
+  console.log(
+    "PAYLOAD:",
+    payload
+  );
 
   const { data, error } = await supabase
     .from("personal")
@@ -93,37 +137,49 @@ export async function updateColaborador(id, colaborador) {
     .eq("id", id)
     .select("*");
 
-
-  console.log("RESPUESTA UPDATE:", data);
-  console.log("ERROR UPDATE:", error);
-
-
   if (error) {
+    console.error(
+      "ERROR UPDATE COLABORADOR:",
+      error
+    );
+
     throw error;
   }
 
+  console.log(
+    "COLABORADOR ACTUALIZADO:",
+    data
+  );
 
   return data?.[0] || null;
 }
 
 
-
-// ===============================
+// =====================================================
 // ELIMINAR COLABORADOR
-// ===============================
-export async function deleteColaborador(id) {
+// =====================================================
+
+export async function deleteColaborador(
+  id
+) {
+  console.log(
+    "ELIMINANDO COLABORADOR:",
+    id
+  );
 
   const { error } = await supabase
     .from("personal")
     .delete()
     .eq("id", id);
 
-
   if (error) {
+    console.error(
+      "ERROR DELETE COLABORADOR:",
+      error
+    );
+
     throw error;
   }
 
-
   return true;
-
 }

@@ -8,7 +8,6 @@ import {
 } from "../services/localesService";
 
 import { getZonas } from "../services/zonasService";
-
 import {
   getColaboradores,
 } from "../services/colaboradoresService";
@@ -20,9 +19,7 @@ import LocalList from "../components/locales/LocalList/LocalList";
 export default function Locales() {
 
   const [locales, setLocales] = useState([]);
-
   const [zonas, setZonas] = useState([]);
-
   const [colaboradores, setColaboradores] = useState([]);
 
   const [localEditando, setLocalEditando] =
@@ -46,19 +43,14 @@ export default function Locales() {
       setLoading(true);
       setError("");
 
-
       const [
         localesData,
         zonasData,
         colaboradoresData,
       ] = await Promise.all([
-
         getLocales(),
-
         getZonas(),
-
         getColaboradores(),
-
       ]);
 
 
@@ -91,6 +83,12 @@ export default function Locales() {
           encargado:
             local.encargado || "",
 
+          latitud:
+            local.latitud ?? null,
+
+          longitud:
+            local.longitud ?? null,
+
           dotacion_teorica:
             Number(
               local.dotacion_teorica ?? 4
@@ -99,18 +97,11 @@ export default function Locales() {
         }));
 
 
-      setLocales(
-        localesNormalizados
-      );
-
-      setZonas(
-        zonasData || []
-      );
-
+      setLocales(localesNormalizados);
+      setZonas(zonasData || []);
       setColaboradores(
         colaboradoresData || []
       );
-
 
     } catch (err) {
 
@@ -123,7 +114,6 @@ export default function Locales() {
         err?.message ||
         "No se pudieron cargar los datos."
       );
-
 
     } finally {
 
@@ -166,26 +156,11 @@ export default function Locales() {
           localEditando.id;
 
 
-        console.log(
-          "GUARDANDO CAMBIOS EN LOCAL:",
-          id
-        );
-
-        console.log(
-          "DATOS DEL FORMULARIO:",
-          local
-        );
-
-
         await updateLocal(
           id,
           local
         );
 
-
-        // -----------------------------------------------
-        // ACTUALIZACIÓN INMEDIATA DEL ESTADO
-        // -----------------------------------------------
 
         setLocales((prevLocales) => {
 
@@ -193,9 +168,7 @@ export default function Locales() {
             (item) => {
 
               if (item.id !== id) {
-
                 return item;
-
               }
 
 
@@ -239,16 +212,14 @@ export default function Locales() {
                     local.dotacion_teorica ?? 4
                   ),
 
-                // ---------------------------------------
-                // MANTENER RELACIÓN CON ZONA
-                // ---------------------------------------
-
                 zonas:
                   zonas.find(
                     (zona) =>
                       String(zona.id) ===
                       String(local.zona_id)
-                  ) || item.zonas || null,
+                  ) ||
+                  item.zonas ||
+                  null,
 
               };
 
@@ -258,21 +229,9 @@ export default function Locales() {
         });
 
 
-        console.log(
-          "LOCAL ACTUALIZADO EN ESTADO LOCAL:",
-          id
-        );
-
-
         setLocalEditando(null);
 
-
-        // -----------------------------------------------
-        // RECARGA FINAL DESDE SUPABASE
-        // -----------------------------------------------
-
         await cargarDatos();
-
 
         return;
 
@@ -285,12 +244,9 @@ export default function Locales() {
 
       await createLocal(local);
 
-
       setLocalEditando(null);
 
-
       await cargarDatos();
-
 
     } catch (err) {
 
@@ -318,10 +274,23 @@ export default function Locales() {
     setLocalEditando(local);
 
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    setTimeout(() => {
+
+      const formulario =
+        document.getElementById(
+          "local-formulario"
+        );
+
+      if (formulario) {
+
+        formulario.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+
+      }
+
+    }, 100);
 
   }
 
@@ -350,9 +319,7 @@ export default function Locales() {
 
 
     if (!confirmar) {
-
       return;
-
     }
 
 
@@ -360,22 +327,18 @@ export default function Locales() {
 
       setError("");
 
-
       await deleteLocal(id);
 
 
       setLocales((prevLocales) =>
-
         prevLocales.filter(
           (local) =>
             local.id !== id
         )
-
       );
 
 
       await cargarDatos();
-
 
     } catch (err) {
 
@@ -395,36 +358,52 @@ export default function Locales() {
 
 
   // =====================================================
-  // DOTACIÓN REAL
-  // =====================================================
-
-  function obtenerDotacionReal(localId) {
-
-    return colaboradores.filter(
-      (colaborador) =>
-        colaborador.local_id === localId
-    ).length;
-
-  }
-
-
-  // =====================================================
-  // ENRIQUECER LOCALES
+  // LOCALES CON DOTACIÓN Y ENCARGADO
   // =====================================================
 
   const localesConDotacion =
     locales.map((local) => {
 
-      const dotacionReal =
-        obtenerDotacionReal(
-          local.id
+      const colaboradoresLocal =
+        colaboradores.filter(
+          (colaborador) =>
+            String(
+              colaborador.local_id
+            ) ===
+            String(local.id)
         );
+
+
+      const dotacionReal =
+        colaboradoresLocal.length;
 
 
       const dotacionTeorica =
         Number(
           local.dotacion_teorica ?? 4
         );
+
+
+      // =================================================
+      // BUSCAR ENCARGADO REAL
+      // =================================================
+
+      const encargado =
+        colaboradoresLocal.find(
+          (colaborador) =>
+            String(
+              colaborador.puesto || ""
+            ).trim().toLowerCase() ===
+            "encargado"
+        );
+
+
+      const nombreEncargado =
+        encargado
+          ? `${encargado.nombre || ""} ${
+              encargado.apellido || ""
+            }`.trim()
+          : "";
 
 
       return {
@@ -442,6 +421,9 @@ export default function Locales() {
 
         dotacion_real:
           dotacionReal,
+
+        encargado:
+          nombreEncargado,
 
       };
 
@@ -481,25 +463,27 @@ export default function Locales() {
             marginBottom: "20px",
           }}
         >
-
           {error}
-
         </div>
 
       )}
 
 
-      <LocalForm
+      <div id="local-formulario">
 
-        local={localEditando}
+        <LocalForm
 
-        zonas={zonas}
+          local={localEditando}
 
-        onSave={handleSave}
+          zonas={zonas}
 
-        onCancel={handleCancel}
+          onSave={handleSave}
 
-      />
+          onCancel={handleCancel}
+
+        />
+
+      </div>
 
 
       {loading ? (
@@ -517,14 +501,11 @@ export default function Locales() {
       ) : (
 
         <LocalList
-
-          locales={localesConDotacion}
-
-          onEdit={handleEdit}
-
-          onDelete={handleDelete}
-
-        />
+  locales={localesConDotacion}
+  colaboradores={colaboradores}
+  onEdit={handleEdit}
+  onDelete={handleDelete}
+/>
 
       )}
 
