@@ -58,31 +58,36 @@ export default function Colaboradores() {
   }, []);
 
   async function guardarColaborador(data) {
-    try {
-      if (editando) {
-        await updateColaborador(
-          editando.id,
-          data
-        );
-      } else {
-        await createColaborador(data);
-      }
+  try {
+    if (editando) {
+      const datosActualizados = {
+        ...editando,
+        ...data,
+      };
 
-      setEditando(null);
-
-      await cargarDatos();
-    } catch (error) {
-      console.error(
-        "ERROR GUARDANDO COLABORADOR:",
-        error
+      await updateColaborador(
+        editando.id,
+        datosActualizados
       );
-
-      alert(
-        error?.message ||
-          "Error guardando colaborador."
-      );
+    } else {
+      await createColaborador(data);
     }
+
+    setEditando(null);
+
+    await cargarDatos();
+  } catch (error) {
+    console.error(
+      "ERROR GUARDANDO COLABORADOR:",
+      error
+    );
+
+    alert(
+      error?.message ||
+        "Error guardando colaborador."
+    );
   }
+}
 
   async function eliminarColaborador(id) {
     const confirmar = window.confirm(

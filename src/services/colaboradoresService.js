@@ -28,11 +28,6 @@ export async function getColaboradores() {
     throw error;
   }
 
-  console.log(
-    "COLABORADORES DESDE SUPABASE:",
-    data
-  );
-
   return data || [];
 }
 
@@ -41,24 +36,22 @@ export async function getColaboradores() {
 // CREAR COLABORADOR
 // =====================================================
 
-export async function createColaborador(
-  colaborador
-) {
+export async function createColaborador(colaborador) {
   const payload = {
     legajo:
-      colaborador.legajo || null,
+      colaborador.legajo ?? null,
 
     nombre:
-      colaborador.nombre || null,
+      colaborador.nombre ?? null,
 
     apellido:
-      colaborador.apellido || null,
+      colaborador.apellido ?? null,
 
     telefono:
-      colaborador.telefono || null,
+      colaborador.telefono ?? null,
 
     puesto:
-      colaborador.puesto || null,
+      colaborador.puesto ?? null,
 
     rol:
       colaborador.rol || "colaborador",
@@ -91,6 +84,107 @@ export async function createColaborador(
 
 
 // =====================================================
+// OBTENER LOCAL
+// =====================================================
+
+async function obtenerLocal(id) {
+  if (!id) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("locales")
+    .select(`
+      id,
+      numero,
+      nombre
+    `)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    console.error(
+      "ERROR OBTENIENDO LOCAL:",
+      error
+    );
+
+    throw error;
+  }
+
+  return data || null;
+}
+
+
+// =====================================================
+// REGISTRAR MOVIMIENTO
+// =====================================================
+
+async function registrarMovimiento({
+  colaboradorId,
+  localAnteriorId,
+  localNuevoId,
+}) {
+  if (
+    !colaboradorId ||
+    !localAnteriorId ||
+    !localNuevoId ||
+    localAnteriorId === localNuevoId
+  ) {
+    return;
+  }
+
+  const [
+    localAnterior,
+    localNuevo,
+  ] = await Promise.all([
+    obtenerLocal(localAnteriorId),
+    obtenerLocal(localNuevoId),
+  ]);
+
+  const anteriorTexto = localAnterior
+    ? `Local Nº ${localAnterior.numero || "-"} - ${
+        localAnterior.nombre || "Sin nombre"
+      }`
+    : "Local desconocido";
+
+  const nuevoTexto = localNuevo
+    ? `Local Nº ${localNuevo.numero || "-"} - ${
+        localNuevo.nombre || "Sin nombre"
+      }`
+    : "Local desconocido";
+
+  const descripcion =
+    `${anteriorTexto} → ${nuevoTexto}`;
+
+  const { error } = await supabase
+    .from("logs")
+    .insert([
+      {
+        tipo: "MOVIMIENTO_COLABORADOR",
+        descripcion,
+        colaborador_id: colaboradorId,
+        local_anterior_id: localAnteriorId,
+        local_nuevo_id: localNuevoId,
+      },
+    ]);
+
+  if (error) {
+    console.error(
+      "ERROR REGISTRANDO MOVIMIENTO:",
+      error
+    );
+
+    throw error;
+  }
+
+  console.log(
+    "MOVIMIENTO REGISTRADO:",
+    descripcion
+  );
+}
+
+
+// =====================================================
 // ACTUALIZAR COLABORADOR
 // =====================================================
 
@@ -98,32 +192,87 @@ export async function updateColaborador(
   id,
   colaborador
 ) {
+  if (!id) {
+    throw new Error(
+      "No se recibió el ID del colaborador."
+    );
+  }
+
+  // ---------------------------------------------------
+  // OBTENER DATOS ACTUALES
+  // ---------------------------------------------------
+
+  const {
+    data: actual,
+    error: errorActual,
+  } = await supabase
+    .from("personal")
+    .select(`
+      id,
+      legajo,
+      nombre,
+      apellido,
+      telefono,
+      puesto,
+      rol,
+      local_id
+    `)
+    .eq("id", id)
+    .single();
+
+  if (errorActual) {
+    console.error(
+      "ERROR OBTENIENDO COLABORADOR ACTUAL:",
+      errorActual
+    );
+
+    throw errorActual;
+  }
+
+  // ---------------------------------------------------
+  // CONSERVAR DATOS EXISTENTES
+  // ---------------------------------------------------
+
   const payload = {
     legajo:
-      colaborador.legajo || null,
+      colaborador.legajo !== undefined
+        ? colaborador.legajo
+        : actual.legajo,
 
     nombre:
-      colaborador.nombre || null,
+      colaborador.nombre !== undefined
+        ? colaborador.nombre
+        : actual.nombre,
 
     apellido:
-      colaborador.apellido || null,
+      colaborador.apellido !== undefined
+        ? colaborador.apellido
+        : actual.apellido,
 
     telefono:
-      colaborador.telefono || null,
+      colaborador.telefono !== undefined
+        ? colaborador.telefono
+        : actual.telefono,
 
     puesto:
-      colaborador.puesto || null,
+      colaborador.puesto !== undefined
+        ? colaborador.puesto
+        : actual.puesto,
 
     rol:
-      colaborador.rol || "colaborador",
+      colaborador.rol !== undefined
+        ? colaborador.rol
+        : actual.rol,
 
     local_id:
-      colaborador.local_id || null,
+      colaborador.local_id !== undefined
+        ? colaborador.local_id
+        : actual.local_id,
   };
 
   console.log(
-    "ACTUALIZANDO COLABORADOR:",
-    id
+    "COLABORADOR ACTUAL:",
+    actual
   );
 
   console.log(
@@ -131,7 +280,23 @@ export async function updateColaborador(
     payload
   );
 
-  const { data, error } = await supabase
+  // ---------------------------------------------------
+  // DETECTAR CAMBIO DE LOCAL
+  // ---------------------------------------------------
+
+  const huboMovimiento =
+    actual.local_id &&
+    payload.local_id &&
+    actual.local_id !== payload.local_id;
+
+  // ---------------------------------------------------
+  // ACTUALIZAR PERSONAL
+  // ---------------------------------------------------
+
+  const {
+    data,
+    error,
+  } = await supabase
     .from("personal")
     .update(payload)
     .eq("id", id)
@@ -146,12 +311,29 @@ export async function updateColaborador(
     throw error;
   }
 
-  console.log(
-    "COLABORADOR ACTUALIZADO:",
-    data
-  );
+  const actualizado =
+    data?.[0] || null;
 
-  return data?.[0] || null;
+  // ---------------------------------------------------
+  // REGISTRAR MOVIMIENTO
+  // ---------------------------------------------------
+
+  if (huboMovimiento) {
+    try {
+      await registrarMovimiento({
+        colaboradorId: id,
+        localAnteriorId: actual.local_id,
+        localNuevoId: payload.local_id,
+      });
+    } catch (errorMovimiento) {
+      console.error(
+        "EL COLABORADOR FUE MOVIDO, PERO NO SE PUDO REGISTRAR EL MOVIMIENTO:",
+        errorMovimiento
+      );
+    }
+  }
+
+  return actualizado;
 }
 
 
@@ -159,9 +341,7 @@ export async function updateColaborador(
 // ELIMINAR COLABORADOR
 // =====================================================
 
-export async function deleteColaborador(
-  id
-) {
+export async function deleteColaborador(id) {
   console.log(
     "ELIMINANDO COLABORADOR:",
     id

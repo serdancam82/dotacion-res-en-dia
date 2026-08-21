@@ -52,8 +52,7 @@ export default function ColaboradorForm({
           "",
 
         zona_id:
-          colaborador.zona_id ||
-          "",
+          colaborador.zona_id || "",
       });
     } else {
       setForm(initialState);
