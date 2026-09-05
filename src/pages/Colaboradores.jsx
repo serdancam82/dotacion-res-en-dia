@@ -7,6 +7,7 @@ import {
   getColaboradores,
   createColaborador,
   updateColaborador,
+  moverColaborador,
   deleteColaborador,
 } from "../services/colaboradoresService";
 
@@ -65,10 +66,29 @@ export default function Colaboradores() {
         ...data,
       };
 
+      const datosPersonales = {
+        legajo: datosActualizados.legajo,
+        nombre: datosActualizados.nombre,
+        apellido: datosActualizados.apellido,
+        telefono: datosActualizados.telefono,
+        puesto: datosActualizados.puesto,
+        rol: datosActualizados.rol,
+      };
+
       await updateColaborador(
         editando.id,
-        datosActualizados
+        datosPersonales
       );
+
+      if (
+        data.local_id &&
+        data.local_id !== editando.local_id
+      ) {
+        await moverColaborador(
+          editando.id,
+          data.local_id
+        );
+      }
     } else {
       await createColaborador(data);
     }

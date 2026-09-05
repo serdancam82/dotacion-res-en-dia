@@ -84,103 +84,44 @@ export async function createColaborador(colaborador) {
 
 
 // =====================================================
-// OBTENER LOCAL
+// MOVER COLABORADOR
 // =====================================================
 
-async function obtenerLocal(id) {
+export async function moverColaborador(
+  id,
+  localNuevoId
+) {
   if (!id) {
-    return null;
+    throw new Error(
+      "No se recibio el ID del colaborador."
+    );
   }
 
-  const { data, error } = await supabase
-    .from("locales")
-    .select(`
-      id,
-      numero,
-      nombre
-    `)
-    .eq("id", id)
-    .maybeSingle();
+  if (!localNuevoId) {
+    throw new Error(
+      "No se recibio el ID del nuevo local."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await supabase
+    .rpc("mover_colaborador_atomico", {
+      p_colaborador_id: id,
+      p_local_nuevo_id: localNuevoId,
+    });
 
   if (error) {
     console.error(
-      "ERROR OBTENIENDO LOCAL:",
+      "ERROR MOVIENDO COLABORADOR:",
       error
     );
 
     throw error;
   }
 
-  return data || null;
-}
-
-
-// =====================================================
-// REGISTRAR MOVIMIENTO
-// =====================================================
-
-async function registrarMovimiento({
-  colaboradorId,
-  localAnteriorId,
-  localNuevoId,
-}) {
-  if (
-    !colaboradorId ||
-    !localAnteriorId ||
-    !localNuevoId ||
-    localAnteriorId === localNuevoId
-  ) {
-    return;
-  }
-
-  const [
-    localAnterior,
-    localNuevo,
-  ] = await Promise.all([
-    obtenerLocal(localAnteriorId),
-    obtenerLocal(localNuevoId),
-  ]);
-
-  const anteriorTexto = localAnterior
-    ? `Local Nº ${localAnterior.numero || "-"} - ${
-        localAnterior.nombre || "Sin nombre"
-      }`
-    : "Local desconocido";
-
-  const nuevoTexto = localNuevo
-    ? `Local Nº ${localNuevo.numero || "-"} - ${
-        localNuevo.nombre || "Sin nombre"
-      }`
-    : "Local desconocido";
-
-  const descripcion =
-    `${anteriorTexto} → ${nuevoTexto}`;
-
-  const { error } = await supabase
-    .from("logs")
-    .insert([
-      {
-        tipo: "MOVIMIENTO_COLABORADOR",
-        descripcion,
-        colaborador_id: colaboradorId,
-        local_anterior_id: localAnteriorId,
-        local_nuevo_id: localNuevoId,
-      },
-    ]);
-
-  if (error) {
-    console.error(
-      "ERROR REGISTRANDO MOVIMIENTO:",
-      error
-    );
-
-    throw error;
-  }
-
-  console.log(
-    "MOVIMIENTO REGISTRADO:",
-    descripcion
-  );
+  return data;
 }
 
 
@@ -194,7 +135,7 @@ export async function updateColaborador(
 ) {
   if (!id) {
     throw new Error(
-      "No se recibió el ID del colaborador."
+      "No se recibio el ID del colaborador."
     );
   }
 
@@ -214,8 +155,7 @@ export async function updateColaborador(
       apellido,
       telefono,
       puesto,
-      rol,
-      local_id
+      rol
     `)
     .eq("id", id)
     .single();
@@ -263,11 +203,6 @@ export async function updateColaborador(
       colaborador.rol !== undefined
         ? colaborador.rol
         : actual.rol,
-
-    local_id:
-      colaborador.local_id !== undefined
-        ? colaborador.local_id
-        : actual.local_id,
   };
 
   console.log(
@@ -279,15 +214,6 @@ export async function updateColaborador(
     "PAYLOAD:",
     payload
   );
-
-  // ---------------------------------------------------
-  // DETECTAR CAMBIO DE LOCAL
-  // ---------------------------------------------------
-
-  const huboMovimiento =
-    actual.local_id &&
-    payload.local_id &&
-    actual.local_id !== payload.local_id;
 
   // ---------------------------------------------------
   // ACTUALIZAR PERSONAL
@@ -313,25 +239,6 @@ export async function updateColaborador(
 
   const actualizado =
     data?.[0] || null;
-
-  // ---------------------------------------------------
-  // REGISTRAR MOVIMIENTO
-  // ---------------------------------------------------
-
-  if (huboMovimiento) {
-    try {
-      await registrarMovimiento({
-        colaboradorId: id,
-        localAnteriorId: actual.local_id,
-        localNuevoId: payload.local_id,
-      });
-    } catch (errorMovimiento) {
-      console.error(
-        "EL COLABORADOR FUE MOVIDO, PERO NO SE PUDO REGISTRAR EL MOVIMIENTO:",
-        errorMovimiento
-      );
-    }
-  }
 
   return actualizado;
 }

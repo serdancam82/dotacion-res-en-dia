@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getLocales } from "../services/localesService";
 import {
   getColaboradores,
-  updateColaborador,
+  moverColaborador,
 } from "../services/colaboradoresService";
 
 
@@ -224,11 +224,9 @@ export default function Dotacion() {
       setMensaje("");
 
 
-      await updateColaborador(
+      await moverColaborador(
         colaboradorSeleccionado.id,
-        {
-          local_id: nuevoLocalId,
-        }
+        nuevoLocalId
       );
 
 
